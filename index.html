@@ -48,7 +48,6 @@ h1{margin:0;font-size:1.5rem;font-weight:600;letter-spacing:-0.01em;text-wrap:ba
 .keys button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .keys button:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--cursor);outline-offset:2px}
 input[type=range]{width:100%;accent-color:var(--cursor);margin:4px 0 0}
-.ends{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.72rem;color:var(--muted)}
 .scale{display:flex;flex-direction:column;gap:6px}
 .row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;position:relative;padding-bottom:14px;
   background:repeating-linear-gradient(90deg,transparent 0 calc(100%/70 - 1px),var(--rule) calc(100%/70 - 1px) calc(100%/70)) bottom/100% 6px no-repeat}
@@ -69,7 +68,7 @@ input[type=range]{width:100%;accent-color:var(--cursor);margin:4px 0 0}
 <main>
   <header>
     <h1>Key Slide Rule<span class="by"> - Designed by Martin Kendall</span></h1>
-    <p class="sub">Find the flats or sharps in any major key.</p>
+    <p class="sub">Tap on the target key to reveal the key signature.</p>
   </header>
 
   <section class="panel" aria-label="Choose a key">
@@ -80,7 +79,6 @@ input[type=range]{width:100%;accent-color:var(--cursor);margin:4px 0 0}
     </div>
     <div class="keys" id="keys" role="group" aria-label="Major keys, flats to sharps"></div>
     <input type="range" id="k" min="0" max="13" step="1" value="4" aria-label="Target key, flats to sharps">
-    <div class="ends"><span>7 flats</span><span>C</span><span>6 sharps</span></div>
   </section>
 
   <section class="panel" aria-label="Slide rule">

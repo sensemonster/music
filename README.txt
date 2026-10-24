@@ -28,7 +28,7 @@ Then, on each device, open the address once while online:
 
 Menu names vary a little between versions.
 
-Updating: change the files, then bump CACHE in sw.js (key-slide-rule-v3 to -v4) so
+Updating: change the files, then bump CACHE in sw.js (key-slide-rule-v4 to -v5) so
 installed copies pick up the new version.
 
 Files
