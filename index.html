@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Key Slide Rule - Designed by Martin Kendall</title>
+<meta name="description" content="A slide rule for finding the flats or sharps in any major key.">
+<meta name="theme-color" content="#e9edf0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10181e" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Key Slide Rule">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+/* Layout: a draughtsman's slide rule. Key line of fifths on top, flat and sharp scales below, one red hairline marks the target. */
+:root{
+  color-scheme:light;
+  --bg:#e9edf0; --paper:#f6f8f9; --ink:#14212b; --muted:#5a6b78; --rule:#b9c4cc;
+  --flat:#1f5fa8; --flat-bg:#d6e6f6; --sharp:#7a5200; --sharp-bg:#f3e3b8; --cursor:#c8322b;
+  --font-body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono","Droid Sans Mono",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10181e; --paper:#182229; --ink:#e6edf1; --muted:#93a4b0; --rule:#33434e;
+  --flat:#8fbcec; --flat-bg:#1d3a57; --sharp:#e5b94e; --sharp-bg:#4a3a12; --cursor:#ff6a5f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10181e; --paper:#182229; --ink:#e6edf1; --muted:#93a4b0; --rule:#33434e;
+  --flat:#8fbcec; --flat-bg:#1d3a57; --sharp:#e5b94e; --sharp-bg:#4a3a12; --cursor:#ff6a5f; color-scheme:dark}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.5;
+  padding-block:24px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:20px;min-width:0}
+header{display:flex;flex-direction:column;gap:2px}
+h1{margin:0;font-size:1.5rem;font-weight:600;letter-spacing:-0.01em;text-wrap:balance}
+.by{font-size:.95rem;font-weight:400;color:var(--muted);letter-spacing:0}
+.sub{margin:0;color:var(--muted);font-size:.9rem}
+.panel{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.cap{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+.readout{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.keyname{font-size:2.25rem;font-weight:600;letter-spacing:-0.02em;line-height:1}
+.rel{font-family:var(--font-mono);font-size:.85rem;color:var(--muted)}
+.keys{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.keys button{font:inherit;font-family:var(--font-mono);font-size:.95rem;height:44px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);border-radius:3px;cursor:pointer;padding:0}
+.keys button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.keys button:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--cursor);outline-offset:2px}
+input[type=range]{width:100%;accent-color:var(--cursor);margin:4px 0 0}
+.ends{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.72rem;color:var(--muted)}
+.scale{display:flex;flex-direction:column;gap:6px}
+.row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;position:relative;padding-bottom:14px;
+  background:repeating-linear-gradient(90deg,transparent 0 calc(100%/70 - 1px),var(--rule) calc(100%/70 - 1px) calc(100%/70)) bottom/100% 6px no-repeat}
+.cell{height:52px;display:flex;align-items:center;justify-content:center;border:1px solid var(--rule);border-radius:3px;background:var(--bg);color:var(--muted);font-family:var(--font-mono);font-size:1.15rem;font-weight:500;position:relative}
+.flats .on{background:var(--flat-bg);color:var(--flat);border-color:var(--flat)}
+.sharps .on{background:var(--sharp-bg);color:var(--sharp);border-color:var(--sharp)}
+.cell.tgt{box-shadow:0 0 0 2px var(--cursor)}
+.cell.tgt::after{content:"";position:absolute;left:50%;bottom:-13px;width:2px;height:12px;background:var(--cursor);transform:translateX(-50%)}
+.rulebox{display:flex;flex-direction:column;gap:6px;font-size:.95rem}
+.rulebox p{margin:0}
+.mono{font-family:var(--font-mono);font-size:.9rem}
+.note{font-size:.85rem;color:var(--muted);margin:0}
+.install{font-size:.85rem;color:var(--muted);margin:0}
+@media (prefers-reduced-motion:no-preference){.cell{transition:background .15s,color .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Key Slide Rule<span class="by"> - Designed by Martin Kendall</span></h1>
+    <p class="sub">Find the flats or sharps in any major key.</p>
+  </header>
+
+  <section class="panel" aria-label="Choose a key">
+    <p class="cap">Target key</p>
+    <div class="readout">
+      <div class="keyname" id="kn" aria-live="polite">E♭ major</div>
+      <div class="rel" id="rel"></div>
+    </div>
+    <div class="keys" id="keys" role="group" aria-label="Major keys, flats to sharps"></div>
+    <input type="range" id="k" min="0" max="13" step="1" value="4" aria-label="Target key, flats to sharps">
+    <div class="ends"><span>7 flats</span><span>C</span><span>6 sharps</span></div>
+  </section>
+
+  <section class="panel" aria-label="Slide rule">
+    <div class="scale">
+      <p class="cap">Flat order · B E A D G C F</p>
+      <div class="row flats" id="fl"></div>
+    </div>
+    <div class="scale">
+      <p class="cap">Sharp order · F C G D A E B</p>
+      <div class="row sharps" id="sh"></div>
+    </div>
+    <div class="rulebox" id="out"></div>
+  </section>
+
+  <section class="panel">
+    <p class="cap">The rule</p>
+    <div class="rulebox">
+      <p><span class="mono">Flats</span> run along B E A D G C F up to the target note, plus the next one.</p>
+      <p><span class="mono">Sharps</span> run along F C G D A E B and stop two places before the target.</p>
+      <p class="note">F major is the exception: one flat, B♭.</p>
+    </div>
+  </section>
+
+  <p class="install" id="inst-file">Opened from a file, this works offline as it is. To install it as an app on a phone or tablet, upload the whole folder to a web host first. The README explains how.</p>
+  <p class="install" id="inst-web" hidden>Install as an app. iPhone or iPad (Safari): three-dot menu, Share, Add to Home Screen, with Open as Web App on. Android (Chrome): menu, Install app. Mac (Safari, macOS Sonoma or later): File, Add to Dock. After the first visit it works offline.</p>
+</main>
+<script>
+(function(){
+var F=['B','E','A','D','G','C','F'],S=['F','C','G','D','A','E','B'];
+var KEYS=['Cb','Gb','Db','Ab','Eb','Bb','F','C','G','D','A','E','B','F#'];
+var REL={Cb:'Ab',Gb:'Eb',Db:'Bb',Ab:'F',Eb:'C',Bb:'G',F:'D',C:'A',G:'E',D:'B',A:'F#',E:'C#',B:'G#','F#':'D#'};
+var FI={Cb:5,Gb:4,Db:3,Ab:2,Eb:1,Bb:0};
+function pretty(n){return n.replace('b','♭').replace('#','♯')}
+var slider=document.getElementById('k'),keysEl=document.getElementById('keys');
+var btns=KEYS.map(function(n,i){var b=document.createElement('button');b.type='button';b.textContent=pretty(n);b.setAttribute('aria-pressed','false');
+  b.addEventListener('click',function(){set(i)});keysEl.appendChild(b);return b});
+function set(i){slider.value=i;draw();try{localStorage.setItem('ksr-key',String(i))}catch(e){}}
+function draw(){
+  var i=+slider.value,n=KEYS[i],nf=0,ns=0,ft=-1,st=-1,msg;
+  if(FI[n]!==undefined){ft=FI[n];nf=ft+2}
+  else if(n==='F'){nf=1}
+  else if(n==='F#'){ns=6;st=0}
+  else if(n!=='C'){st=S.indexOf(n);ns=st-1}
+  var fl=document.getElementById('fl'),sh=document.getElementById('sh');
+  fl.innerHTML='';sh.innerHTML='';
+  F.forEach(function(x,j){var d=document.createElement('div');d.className='cell'+(j<nf?' on':'')+(j===ft?' tgt':'');d.textContent=x+(j<nf?'♭':'');fl.appendChild(d)});
+  S.forEach(function(x,j){var d=document.createElement('div');d.className='cell'+(j<ns?' on':'')+(j===st?' tgt':'');d.textContent=x+(j<ns?'♯':'');sh.appendChild(d)});
+  btns.forEach(function(b,j){b.setAttribute('aria-pressed',j===i?'true':'false')});
+  document.getElementById('kn').textContent=pretty(n)+' major';
+  document.getElementById('rel').textContent='relative minor: '+pretty(REL[n])+' minor';
+  if(n==='C')msg='No flats or sharps.';
+  else if(n==='F')msg='Exception: F major has one flat, B♭. F is the last note of the flat order, so "target plus one" does not apply.';
+  else if(n==='F#')msg='6 sharps: F, C, G, D, A, E. Only B stays natural.';
+  else if(nf>0)msg=nf+' flat'+(nf>1?'s':'')+': '+F.slice(0,nf).join(', ')+'. The marked note is the target; the next note after it is flat too.';
+  else msg=ns+' sharp'+(ns>1?'s':'')+': '+S.slice(0,ns).join(', ')+'. The marked note is the target; the note just before it, and everything after it, stays natural.';
+  var o=document.getElementById('out');o.innerHTML='';var p=document.createElement('p');p.textContent=msg;o.appendChild(p);
+}
+slider.addEventListener('input',draw);
+var start=4;try{var s=localStorage.getItem('ksr-key');if(s!==null&&+s>=0&&+s<=13)start=+s}catch(e){}
+slider.value=start;draw();
+})();
+(function(){var web=/^https?:$/.test(location.protocol),app=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;
+  var f=document.getElementById('inst-file'),w=document.getElementById('inst-web');
+  if(app){f.hidden=true;w.hidden=true}else if(web){f.hidden=true;w.hidden=false}})();
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
+}
+</script>
+</body>
+</html>
